@@ -1,186 +1,190 @@
-# vibe-music-agent
+# 🎵 Vibe Music Agent
 
-Vibe to Spotify playlist, with zero hallucinated tracks.
+> Type a vibe. Get a Spotify playlist. Zero hallucinated tracks.
 
-A local Flask app that turns the way you talk about music ("late-night drive in the rain, melodic French rap, slow burners") into real Spotify playlists. The LLM proposes concrete tracks, the backend verifies every single one against the Spotify search API before anything is added, and a flow engine reorders the result for emotional shape instead of shuffle randomness. It also reads a personal taste profile built from your own library, so recommendations sound like *you* rather than the genre average.
+![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)
+![Python](https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white)
+![Powered by Claude + OpenAI](https://img.shields.io/badge/LLM-Claude%20%2B%20OpenAI-7A3EF8)
+![Spotify API](https://img.shields.io/badge/Spotify-Web%20API-1DB954?logo=spotify&logoColor=white)
+![Local-first](https://img.shields.io/badge/local--first-no%20cloud-111827)
+![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)
 
-What makes it different:
+A local Flask app that turns natural-language vibes into real, verified Spotify playlists.
+Every track the LLM proposes is re-checked against the live Spotify API before it touches your library — so nothing invented ever lands in your queue.
+Built for people who care about how a playlist *flows*, not just what's in it.
 
-- **Zero-hallucination guarantee.** The LLM names tracks, the server re-searches each `(artist, title)` pair on Spotify and drops anything that does not token-match. No invented songs survive into your library. See `src/recommend.py`.
-- **Taste-aware.** A statistical profile of your liked songs (top artists, genre weights, audio-feature distributions) is injected into every prompt, alongside a prose `TASTE_PROFILE.md` you can edit by hand. See `src/taste.py`.
-- **Flow-aware ordering.** Tracks are sequenced by energy, tempo, key compatibility, valence and danceability, in five styles: `smooth`, `build`, `steady`, `journey`, `rollercoaster`. See `src/flow.py`.
-- **Learns from feedback.** Every approval, rejection and correction goes into a local SQLite store; the learner extracts rules and evolves per-playlist profiles over time. See `src/learner.py`.
+---
 
-## Features
+## 👀 See it in action
 
-- Chat-driven playlist building, cleaning, and reordering
-- Per-playlist "profiles" so vibes route to the right destination
-- Reference-track URL ingestion ("more like this: <Spotify URL>")
-- Duplicate detection and bulk cleanup
-- Taste analyzer that turns your liked songs into an editable profile
-- Anthropic Claude as the primary brain, OpenAI as a fallback
-- Pure local app — no servers, no accounts beyond the ones you already have
+```text
+> make me a 30-track playlist for late-night driving in the rain
+✓ verified 30 tracks on Spotify
+✓ ordered for smooth emotional flow
+✓ added to "🌙 Late Night"
+  → opens https://open.spotify.com/playlist/...
 
-## Architecture
+> clean my Workout playlist of duplicates
+✓ removed 7 duplicates from "🏃 Workout"
 
-The flow is one-way: a user's vibe enters as text, candidate tracks come back as JSON, and only verified Spotify track IDs ever reach the playlist API.
+> reorder my Drive playlist for a build arc
+✓ resequenced 48 tracks: low → peak → coast
 
-```
-  User (browser)
-       |
-       v
-  Web UI  (templates/index.html, static/app.js)
-       |
-       v
-  Flask routes  (src/server.py)
-       |
-       v
-  Brain  (src/brain.py)         <-- Anthropic Claude or OpenAI GPT
-       |   proposes {artist,title} candidates
-       v
-  Recommender  (src/recommend.py)
-       |   verifies each against Spotify search,
-       |   token-matches, applies audio target,
-       |   pads from library if needed
-       v
-  Flow Engine  (src/flow.py)    <-- orders for smooth/build/journey/...
-       |
-       v
-  Playlist Manager  (src/playlist.py)
-       |
-       v
-  Spotify API
+> add 10 more like this to Discovery: https://open.spotify.com/track/...
+✓ extracted vibe from reference
+✓ verified 10 tracks, added to "✨ Discovery"
 ```
 
-The Learner (`src/learner.py`) sits alongside, recording every approval and rejection and feeding learned rules back into the Brain's system prompt on the next turn.
+---
+
+## 🆚 Why it's different
+
+| | Spotify recommendations | ChatGPT + Spotify link | **Vibe Music Agent** |
+|---|---|---|---|
+| **Hallucinated tracks** | n/a (real catalog) | Often invents songs | **Zero** — every track verified |
+| **Knows your taste** | Algorithmic, opaque | Generic | **Reads your library**, builds an editable profile |
+| **Flow / track order** | Shuffle-ish | None | **Energy + tempo + valence arcs** |
+| **Learns from feedback** | Implicit, unowned | No memory | **Local SQLite**, per-playlist evolution |
+| **Where your data lives** | Their servers | Their servers | **Your machine.** SQLite + localhost |
+| **Editable persona** | No | No | **Hand-edit `TASTE_PROFILE.md`** |
+
+---
+
+## 🧭 How it works
+
+```text
+You ──▶ Web UI ──▶ Brain (LLM) ──▶ Recommender ──▶ Spotify Verify ──▶ Flow Order ──▶ Your Playlist
+                       ▲                                                                    │
+                       └──── Taste Profile ◀──── Feedback Learner ◀────────────────────────┘
+```
+
+A vibe enters as text. The Brain (Claude or GPT) proposes concrete `(artist, title)` candidates, grounded in your taste profile. The Recommender re-searches every candidate on Spotify and drops anything that doesn't token-match — no invented tracks survive. The Flow Engine then orders the verified set for emotional shape, not random shuffle. Every accept or reject feeds the Learner, which evolves your profile and per-playlist defaults over time.
+
+See [Architecture](docs/ARCHITECTURE.md) for diagrams.
+
+---
+
+## ✨ Features
+
+- 🎯 **Zero hallucination** — every track is verified against the live Spotify API before it's added
+- 🧠 **Auto-learns your taste** — the analyzer reads your library and writes your personal profile
+- 🌊 **Flow-aware ordering** — `smooth`, `build`, `wave`, `varied` arcs by energy/tempo/valence
+- 🔒 **Local-first** — SQLite + `127.0.0.1`; nothing leaves your machine besides API calls
+- 🎨 **Personalize freely** — edit `TASTE_PROFILE.md` in plain English to teach the agent who you are
+- 🔁 **Learns from feedback** — rejects evolve the profile, accepts reinforce it
+- 🎼 **Multi-LLM** — Claude (primary) or OpenAI (fallback), swap freely
+- 🧹 **Cleanup tools** — duplicate detection, bulk dedupe, reorder-without-rebuild
+- 🔗 **Reference URLs** — paste a Spotify link and say "more like this"
+
+---
+
+## 🚀 Quickstart — 60 seconds
+
+```bash
+git clone https://github.com/crownkrebs/vibe-music-agent.git
+cd vibe-music-agent
+pip install -r requirements.txt
+cp config.example.json config.json
+# fill in Spotify + Anthropic/OpenAI keys
+python src/server.py
+```
+
+Open [http://localhost:5000](http://localhost:5000), approve the Spotify OAuth screen, then click **Analyze My Taste**.
+
+> **Spotify dev setup:** create an app at [developer.spotify.com/dashboard](https://developer.spotify.com/dashboard) and set the redirect URI to exactly `http://127.0.0.1:8888/callback`.
+> **LLM key:** at least one of [Anthropic](https://console.anthropic.com/) or [OpenAI](https://platform.openai.com/api-keys). Anthropic preferred.
+
+---
 
 <!-- TASTE_ANALYZER_DOCS -->
-## First-time setup
+## 🎨 Personalization — two pillars
 
-After installing dependencies, configuring keys, and authenticating with Spotify (see *Setup* below), the agent doesn't know who you are yet. Two artifacts make it personal:
+Two files at the project root turn this from a generic recommender into a personal one. Both are gitignored.
 
-- `taste_profile.json` — structured profile (cultural worlds, top artists per world, explicit ratio, popularity distribution, current direction, negative space, taste algorithm)
-- `TASTE_PROFILE.md` — long-form prose portrait that mirrors the JSON in human language
+### 1. `TASTE_PROFILE.md` — your cultural-musical worlds, in prose
 
-Both are written to the project root by the **taste analyzer** the first time you run it. Both are gitignored.
+Auto-generated by the **taste analyzer** (`src/taste_analyzer.py`) the first time you click *Analyze My Taste*. It pulls your full liked-songs history, top artists and tracks across all three Spotify time ranges, and recently played; aggregates artist counts, genre histograms, language hints, explicit ratio, popularity buckets, monthly-add timeline; then asks the LLM to write a *cultural* portrait — worlds rather than genres, with explicit attention to **negative space** (what you conspicuously don't listen to) and **current direction** (where your taste is drifting).
 
-To generate them, either:
+You can:
+- Click **Analyze My Taste** in the banner on first launch
+- `POST /api/taste/analyze` (no body required)
+- Or hand-write it: copy `TASTE_PROFILE.example.md` to `TASTE_PROFILE.md` and edit freely
 
-- Click **Analyze my taste** on the banner that appears on first launch, or
-- `POST /api/taste/analyze` (no body required), or
-- Run from a Python shell:
+The Brain reads this on every turn. Edit it any time. Re-run the analyzer when your library has drifted.
 
-  ```python
-  from src.taste_analyzer import TasteAnalyzer
-  from src.spotify import SpotifyClient
-  import json
-  cfg = json.load(open("config.json"))
-  TasteAnalyzer(SpotifyClient(cfg), cfg).analyze()
-  ```
+### 2. `playlists.json` — your named destinations
 
-The analyzer pulls your full liked-songs history, top artists across all three Spotify time ranges, top tracks across all three time ranges, and recently played. It aggregates that into a stat block (artist counts, genre histogram, language hints, explicit ratio, popularity buckets, monthly add histogram) and asks the configured LLM (Anthropic preferred, OpenAI fallback) to translate the numbers into a *cultural* portrait — worlds rather than genres, scenes rather than categories, with explicit attention to negative space (what you conspicuously *don't* listen to) and current direction.
+Each entry is a name (with optional emoji) plus a one-line description and audio target:
 
-Re-run the analyzer any time your library has drifted enough to warrant a fresh portrait. It overwrites both files atomically.
+```json
+"🏃 Workout": {
+  "description": "High-BPM, aggressive, gym energy",
+  "energy": 0.88, "tempo": 145, "danceability": 0.70,
+  "flow_style": "build"
+}
+```
 
-If you'd rather skip the LLM and hand-write your own profile, copy `TASTE_PROFILE.example.md` to `TASTE_PROFILE.md` and edit; the Brain reads whatever's there.
+The descriptions matter — when you say *"I need something for the gym"*, the LLM matches that vibe against descriptions to pick the right playlist. Copy `playlists.example.json` to `playlists.json` to start.
 <!-- /TASTE_ANALYZER_DOCS -->
 
-## Setup
+---
 
-1. Clone the repo.
+## 💬 Try saying
 
-   ```
-   git clone https://github.com/crownkrebs/vibe-music-agent.git
-   cd vibe-music-agent
-   ```
+| You type | What happens |
+|---|---|
+| `make me a 30-track playlist for a late-night drive in the rain` | Verifies, orders for smooth flow, adds to **🌙 Late Night** |
+| `make a Sunday Coffee playlist, jazzy and warm, 25 tracks` | Creates the playlist, builds it, adds |
+| `clean my Workout playlist of duplicates` | Dedupes by canonical artist+title, even across different track IDs |
+| `reorder my Drive playlist for a build arc` | Re-sequences without changing membership |
+| `add 10 more like this to Discovery: https://open.spotify.com/track/...` | Extracts vibe from the reference, finds neighbors, verifies, adds |
+| `what's in my library that sounds like a slow Sunday morning?` | Pure suggest mode — no playlist write |
+| `the last batch was too aggressive, try again softer` | Feedback turn — Learner records, retries with adjusted profile |
+| `swap out anything too poppy from Late Night` | Targeted prune by feature target |
 
-2. Install dependencies.
+---
 
-   ```
-   pip install -r requirements.txt
-   ```
+## 🛠 Tech stack
 
-3. Get Spotify Developer credentials at https://developer.spotify.com/dashboard. Create an app and set the redirect URI to exactly `http://127.0.0.1:8888/callback`. Copy the Client ID and Client Secret.
+**Flask** · **Spotipy** · **Anthropic Claude** · **OpenAI** · **SQLite** · **Vanilla JS**
 
-4. Get an Anthropic API key at https://console.anthropic.com/ **or** an OpenAI key at https://platform.openai.com/api-keys. At least one is required. Anthropic is preferred — Claude produces tighter, more musically-grounded JSON in practice.
+---
 
-5. Copy `config.example.json` to `config.json` and fill in the keys you have. Leave the others blank.
+## 🔐 Privacy & data
 
-6. Run the server:
+Everything runs on your machine. Your Spotify tokens, taste profile, feedback history, chat history, learned rules, and playlist categories all live inside the project directory. No telemetry, no analytics, no third-party servers beyond the APIs you explicitly configure.
 
-   ```
-   python src/server.py
-   ```
+The only outbound network calls are to:
+- `api.spotify.com` — search, library reads, playlist writes
+- `api.anthropic.com` — if you use Claude
+- `api.openai.com` — if you use GPT
 
-   On Windows you can also double-click `run.bat`.
+To wipe state, delete the project directory. That's it.
 
-7. Open http://localhost:5000. The first time you do anything that hits the Spotify API, you will be sent through the Spotify OAuth consent screen. Approve it; the token is cached locally in `.spotify_cache`.
+---
 
-8. **Personalize.** Click *Analyze My Taste* in the UI. This reads your Spotify library and writes two files to the project root:
+## 🤝 Contributing
 
-   - `taste_profile.json` — structured profile (top artists, genre weights, audio-feature distributions)
-   - `TASTE_PROFILE.md` — a prose summary of your cultural-musical worlds
+PRs welcome — see [`CONTRIBUTING.md`](CONTRIBUTING.md) for layout, conventions, and how to add new LLM providers, flow styles, or intents. The issue tracker is open; bug reports and ideas equally appreciated.
 
-   Both files are gitignored. They are what makes recommendations feel like *you* instead of the genre average — without them, the agent falls back to generic taste. Reference shapes are checked into the repo as `taste_profile.example.json` and `TASTE_PROFILE.example.md` so you can see the schema. Edit either file freely; the LLM reads them as context on every turn.
+---
 
-9. **(Optional) Define your playlist categories.** Copy `playlists.example.json` to `playlists.json` and edit. Each entry is a name (with optional emoji) plus a one-line description like `"High-BPM, aggressive, gym energy"`. The LLM uses these descriptions to route a vibe to the right playlist — saying "I need something for the gym" can resolve to "🏃 Workout" because the description mentions gym energy. `playlists.json` is gitignored.
+## 🗺 Roadmap (ideas, not commitments)
 
-## Personalization
+- 🍎 Alternate backends (Apple Music, Tidal, YouTube Music)
+- ⏱ Weekly auto-refresh of the taste profile
+- 🎚 Per-playlist learned models that diverge from the global profile
+- 🖥 Headless CLI mode for scripting and cron
+- 🤖 Local-LLM provider (Ollama) for fully-offline operation
 
-Two files turn this from a generic recommender into a personal one. Both live at the project root, both are gitignored.
+---
 
-**Taste profile** — `TASTE_PROFILE.md` and `taste_profile.json`.
+## 📄 License
 
-Generated by the analyzer (`src/taste_analyzer.py`) the first time you click *Analyze My Taste*. The Markdown file describes your cultural-musical worlds in prose (e.g. "Late-night electronic: ambient + IDM, headphone listens, no vocals"), the JSON file holds the numeric profile (top artists, genre weights, audio-feature percentiles). Edit the Markdown freely — add a section about a niche scene you care about, delete things that misread you. The Brain reads both as context on every turn.
+MIT — see [`LICENSE`](LICENSE).
 
-**Playlist profiles** — `playlists.json`.
+---
 
-Your named playlist categories. Each one is `{ name, description, defaults }` where `defaults` is an audio-feature target (energy, valence, tempo, danceability, acousticness) used as the starting point before learning kicks in. The descriptions matter: when you say "drop something dark in there", the LLM matches that vibe against the descriptions to pick a playlist. See `src/playlist.py:DEFAULT_PROFILES` for the schema.
+## 🙏 Acknowledgments
 
-## Usage examples
-
-A few things you can type in the chat:
-
-- `make me a 30-track playlist for a late-night drive in the rain`
-  Builds candidates, verifies them on Spotify, orders for smooth flow, asks for confirmation, then adds to a Late Night playlist.
-
-- `clean my Workout playlist of duplicates`
-  Runs the dedupe pass on that playlist (different Spotify IDs, same canonical artist + title).
-
-- `reorder my Late Night playlist for smoother flow`
-  Re-sequences with the `smooth` flow strategy without changing membership.
-
-- `add 10 more like this to Discovery: https://open.spotify.com/track/...`
-  Treats the URL as a reference, extracts a vibe target, finds neighbors, verifies, adds.
-
-- `what's in my library that sounds like Frank Ocean's Blonde?`
-  Pure suggest mode — proposes from your library and similar artists, no playlist write.
-
-- `make a new playlist called Sunday Coffee, jazzy and warm, 25 tracks`
-  Creates the playlist, builds it, adds.
-
-## Tech stack
-
-- **Flask** — local HTTP server and routing
-- **Spotipy** — Spotify Web API client
-- **Anthropic Claude** (Opus / Sonnet) — primary brain
-- **OpenAI GPT** — fallback brain
-- **SQLite** — local store for chat history, feedback, learned rules, and per-playlist evolved profiles
-
-## Privacy
-
-Everything runs on your machine. Your Spotify tokens, taste profile, feedback history, chat history, and playlist categories all live inside the project directory. No telemetry. The only outbound network calls are to:
-
-- `api.spotify.com` (search, library reads, playlist writes)
-- `api.anthropic.com` (if you use Claude)
-- `api.openai.com` (if you use GPT)
-
-If you want to wipe state, see `CONFIG.md`.
-
-## Contributing
-
-PRs welcome. See `CONTRIBUTING.md` for layout, conventions, and how to add new LLM providers, flow styles, or intents.
-
-## License
-
-MIT — see `LICENSE`.
+Built on top of the [Spotify Web API](https://developer.spotify.com/documentation/web-api), [Anthropic Claude](https://www.anthropic.com/), and the [OpenAI API](https://platform.openai.com/).
