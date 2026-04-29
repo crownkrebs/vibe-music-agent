@@ -1,0 +1,76 @@
+{
+  "_comment": "Copy this file to playlists.json and customize. Each entry maps a playlist NAME (must match the name on Spotify exactly, emojis included) to its target audio profile + flow style + description. Audio targets are 0-1 except tempo (BPM). description is shown to the AI so it picks the right playlist for a vibe. flow_style controls track ordering: 'smooth' | 'build' | 'wave' | 'varied'.",
+
+  "🌅 Morning": {
+    "description": "Bright, energizing tracks to start the day",
+    "energy": 0.65,
+    "valence": 0.78,
+    "danceability": 0.62,
+    "tempo": 112,
+    "acousticness": 0.30,
+    "flow_style": "smooth"
+  },
+  "🏃 Workout": {
+    "description": "High-BPM, aggressive, gym energy",
+    "energy": 0.88,
+    "valence": 0.55,
+    "danceability": 0.70,
+    "tempo": 145,
+    "acousticness": 0.05,
+    "flow_style": "build"
+  },
+  "🚗 Drive": {
+    "description": "Cruise tempo, melodic, windows down",
+    "energy": 0.62,
+    "valence": 0.62,
+    "danceability": 0.70,
+    "tempo": 110,
+    "acousticness": 0.20,
+    "flow_style": "smooth"
+  },
+  "🍷 Dinner": {
+    "description": "Warm, sophisticated, low-key — cooking or hosting",
+    "energy": 0.40,
+    "valence": 0.58,
+    "danceability": 0.55,
+    "tempo": 100,
+    "acousticness": 0.55,
+    "flow_style": "smooth"
+  },
+  "🌙 Late Night": {
+    "description": "Atmospheric, moody, headphones",
+    "energy": 0.35,
+    "valence": 0.32,
+    "danceability": 0.45,
+    "tempo": 92,
+    "acousticness": 0.50,
+    "flow_style": "smooth"
+  },
+  "🎉 Party": {
+    "description": "Loud, danceable, crowd-pleasing",
+    "energy": 0.85,
+    "valence": 0.78,
+    "danceability": 0.85,
+    "tempo": 124,
+    "acousticness": 0.05,
+    "flow_style": "wave"
+  },
+  "🎻 Classics": {
+    "description": "Timeless older recordings, vocal-centric, vintage",
+    "energy": 0.42,
+    "valence": 0.55,
+    "danceability": 0.50,
+    "tempo": 105,
+    "acousticness": 0.65,
+    "flow_style": "smooth"
+  },
+  "✨ Discovery": {
+    "description": "New finds, anything goes",
+    "energy": 0.60,
+    "valence": 0.55,
+    "danceability": 0.60,
+    "tempo": 115,
+    "acousticness": 0.30,
+    "flow_style": "varied"
+  }
+}

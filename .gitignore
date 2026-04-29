@@ -1,0 +1,58 @@
+# --- secrets / config (user-local) ---
+config.json
+.env
+api.txt
+
+# --- OAuth / Spotify caches ---
+.cache
+.spotify_cache
+
+# --- local databases ---
+music_agent.db
+*.db
+
+# --- logs ---
+*.log
+
+# --- python ---
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+env/
+
+# --- editor / OS ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# --- user-local taste / playlist data ---
+TASTE_PROFILE.md
+taste_profile.json
+playlists.json
+reference/
+
+# --- personal build journal (kept local) ---
+BLUEPRINT.md
+PLAN.md
+QUICKSTART.md
+CLAUDE_CODE_PROMPT.md
+
+# --- agent / planning artifacts (kept local) ---
+.planning/
+SESSION_REPORT*.md
+
+# --- legacy v2 launcher (references nonexistent music_web.py) ---
+Music Agent.bat
+
+# --- raw exports / spreadsheets ---
+*.csv
+
+# --- but ALWAYS keep example templates committed ---
+!*.example.*
+!playlists.example.json
+!config.example.json
+!taste_profile.example.json
+!TASTE_PROFILE.example.md

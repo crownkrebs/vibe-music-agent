@@ -1,0 +1,5 @@
+flask>=3.0
+spotipy>=2.23
+requests>=2.31
+anthropic>=0.39
+openai>=1.40

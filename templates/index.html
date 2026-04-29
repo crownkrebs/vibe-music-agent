@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Music Agent</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div id="app">
+
+    <!-- First-launch banner: prompts taste analysis when profile is missing -->
+    <div id="taste-banner" class="taste-banner" style="display:none;">
+      <div class="taste-banner-text">
+        <strong>First time here?</strong>
+        Run the taste analyzer so the curator actually knows who you are.
+        It pulls your liked songs and top artists, then asks the AI to draft
+        your TASTE_PROFILE.md.
+      </div>
+      <button class="btn-primary" id="run-taste-analyze">Analyze my taste</button>
+      <button class="icon-btn" id="dismiss-taste-banner" title="Dismiss">×</button>
+    </div>
+
+    <!-- LEFT RAIL: Playlist catalog -->
+    <aside class="rail rail-left">
+      <div class="brand">
+        <div class="brand-name"><span class="serif">Music</span> <span class="brand-light">Agent</span></div>
+      </div>
+
+      <section class="rail-section">
+        <header class="rail-head">
+          <span>Playlists</span>
+          <button class="icon-btn" id="refresh-playlists" title="Refresh">Refresh</button>
+        </header>
+        <div id="playlist-list" class="playlist-list">
+          <div class="muted">Connecting.</div>
+        </div>
+      </section>
+
+      <footer class="rail-foot">
+        <button class="btn-ghost" id="open-settings">Settings</button>
+        <button class="btn-ghost" id="open-rules">Rules</button>
+      </footer>
+    </aside>
+
+    <!-- CENTER: Conversation + result -->
+    <main class="center">
+      <header class="center-head">
+        <div id="context-chip" class="context-chip">No playlist selected</div>
+        <nav class="quick-actions" id="quick-actions">
+          <button class="chip" data-action="build">Build a playlist</button>
+          <button class="chip" data-action="fix">Fix a playlist</button>
+          <button class="chip" data-action="discover">Discover</button>
+          <button class="chip" data-action="reference">Analyze a URL</button>
+        </nav>
+      </header>
+
+      <section class="chat" id="chat">
+        <div id="chat-history" class="chat-history">
+          <div class="chat-empty">
+            <h1 class="serif">Good evening.</h1>
+            <p>Tell me what you want to hear, or pick a playlist to begin.</p>
+          </div>
+        </div>
+
+        <div class="chat-input-row">
+          <textarea id="chat-input" rows="1"
+            placeholder="Tell me a vibe. E.g. a playlist for editing photos at 2am."
+            autocomplete="off"></textarea>
+          <button id="chat-send" class="btn-send">Send</button>
+        </div>
+      </section>
+
+      <section class="result" id="content"></section>
+
+      <section class="player">
+        <div id="spotify-embed" class="embed-wrap">
+          <div class="embed-placeholder">Click any track to preview</div>
+        </div>
+      </section>
+    </main>
+
+    <!-- RIGHT RAIL: Taste DNA + Library health -->
+    <aside class="rail rail-right">
+      <section class="rail-section">
+        <header class="rail-head">
+          <span>Taste DNA</span>
+          <button class="icon-btn" id="build-taste" title="Rebuild">Rebuild</button>
+        </header>
+        <div id="taste-dna" class="taste-dna muted">Not built yet.</div>
+      </section>
+
+      <section class="rail-section" id="health-widget" style="display:none;">
+        <header class="rail-head"><span>Library health</span></header>
+        <div id="health-content" class="health-content"></div>
+      </section>
+    </aside>
+  </div>
+
+  <!-- Settings modal -->
+  <div class="modal" id="settings-modal">
+    <div class="modal-card">
+      <header class="modal-head">
+        <h2 class="serif">Settings</h2>
+        <button class="icon-btn" data-close>Close</button>
+      </header>
+      <div class="modal-body">
+        <label>Spotify Client ID</label>
+        <input id="cfg-spotify-id" />
+        <label>Spotify Client Secret</label>
+        <input id="cfg-spotify-secret" type="password" />
+        <label>Spotify Redirect URI</label>
+        <input id="cfg-spotify-redirect" />
+        <label>Anthropic API Key</label>
+        <input id="cfg-anthropic" type="password" />
+        <label>OpenAI API Key</label>
+        <input id="cfg-openai" type="password" />
+        <button class="btn-primary" id="save-config">Save and reconnect</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rules modal -->
+  <div class="modal" id="rules-modal">
+    <div class="modal-card">
+      <header class="modal-head">
+        <h2 class="serif">Learned rules</h2>
+        <button class="icon-btn" data-close>Close</button>
+      </header>
+      <div class="modal-body" id="rules-list"></div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+  <script src="/static/app.js"></script>
+</body>
+</html>
